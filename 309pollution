@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+
+import sys
+from sys import argv
+import os
+import math
+import compute
+from compute import Grid
+from compute import Point
+from compute import Vector
+
+def abort(str) -> None:
+    print(str, file=sys.stderr)
+    sys.exit(84)
+
+###########################
+
+def csv_line_parser(buffer, grid) -> None:
+    point = None
+    for line in buffer.split('\n'):
+        if line == "":
+            continue
+        arr = line.split(';')
+        if len(arr) != 3:
+            abort("Bad CSV format")
+        try:
+            point = Point(int(arr[1]), int(arr[0]), int(arr[2]))
+            grid.push_point(point)
+        except:
+            abort("Converting to int impossible")
+
+def start_program(n, file, x, y) -> None:
+    result = 0.0
+    grid = Grid(n)
+    buffer = None
+    try:
+        with open(file, 'r') as f:
+            buffer = f.read()
+    except OSError as err:
+        abort(str(err)) 
+    if buffer == "":
+        abort("File empty")
+    csv_line_parser(buffer, grid)
+    grid.generate()
+    result = compute.smooth_at(grid, Vector(x, y), n)
+    print("%.2f" % result)
+    
+###########################
+
+def show_help() -> None:
+    print("USAGE")
+    print("./309pollution n file x y")
+    print("DESCRIPTION")
+    print("\tn\tnumber of points on the grid axis")
+    print("\tfile\tcsv file containing the data points x;y;p")
+    print("\tx\tabscissa of the point whose pollution level we want to know")
+    print("\ty\tordinate of the point whose pollution level we want to know")
+
+def main() -> None:
+    if len(argv) == 2 and argv[1] in ["-h", "--help"]:
+        show_help()
+    elif len(argv) == 5:
+        try:
+            n = int(argv[1])
+            file = argv[2]
+            x = float(argv[3])
+            y = float(argv[4])
+        except ValueError as err:
+            abort("error : " + str(err))
+        start_program(n, file, x, y)
+    else:
+        abort("Bad number of arguments")
+
+if __name__ == "__main__":
+    main()
